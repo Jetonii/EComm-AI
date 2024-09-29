@@ -1,13 +1,14 @@
-const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+import fileSystem from 'fs';
+import { Parser } from 'json2csv';
 
-async function saveToCSV(data, filePath) {
-    const csvWriter = createCsvWriter({
-        path: filePath,
-        header: Object.keys(data[0]).map(key => ({ id: key, title: key }))
-    });
+export async function saveToCSV(data, filePath) {
+    try {
+        const json2csvParser = new Parser();
+        const csv = json2csvParser.parse(data);
 
-    await csvWriter.writeRecords(data);
-    console.log('Data has been saved to CSV.');
+        fileSystem.writeFileSync(filePath, csv);
+        console.log(`Data successfully saved to ${filePath}`);
+    } catch (error) {
+        console.error('Error saving data to CSV:', error);
+    }
 }
-
-module.exports = { saveToCSV };
