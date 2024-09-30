@@ -51,15 +51,15 @@ export async function askAIForHomePageInfo(imagePath) {
 }
 
 export async function askAIForProductPageInfo(imagePath) {
-    const content = `
-        This is the image of a product of an ecommerce site, analyze it and answer these questions:
-        1. What is the price of this product? 
-        2. What is the discount price of this product?
-        3. What is the name of this product? 
-        Also, try to find relative xpaths of these elements and provide the answer in this format:
-        Ex:  currency: EUR, price: '15', discountPrice: '10', productName: 'earphones'
-        priceXPath: 'appropriate price xpath', discountPriceXPath: 'discount price xpath', productNameXPath: 'product name xpath'
-    `;
+        const content = `
+            This is the image of a product of an ecommerce site, analyze it and answer these questions:
+            1. What is the price of this product? 
+            2. What is the discount price of this product?
+            3. What is the name of this product? 
+            Also, try to find relative xpaths of these elements and provide the answer in this format:
+            Ex:  currency: EUR, price: '15', discountPrice: '10', productName: 'earphones'
+            priceXPath: 'appropriate price xpath', discountPriceXPath: 'discount price xpath', productNameXPath: 'product name xpath'
+        `;
     return await askAI(imagePath, content);
 }
 
