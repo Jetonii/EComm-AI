@@ -3,6 +3,8 @@ import puppeteer from "puppeteer";
 import { saveToCSV } from "../utils/csvUtils.js";
 import { addApiErrorListener, addImageErrorListener, addSourceCodeErrorListener } from "../utils/dataRetrievingUtils.js";
 import { detectLanguage } from "../utils/detectLanguage.js";
+import { askAIForProductPageInfo } from "../utils/AIUtils.js";
+import { parseProductInfoFromAIResponse } from "../utils/parserUtils.js";
 
 async function gatherProductPageInfo(pageUrl) {
     const logsData = [];
@@ -16,9 +18,21 @@ async function gatherProductPageInfo(pageUrl) {
     urlMetadata.language = language;
     urlMetadata.title = await page.title();
 
+    let pageDomain = (new URL(pageUrl)).hostname;
+
+    const screenshotPath = `./screenshots/${pageDomain}-ProductPage.png`;
+    await page.screenshot({ path: screenshotPath });
+
+    const AIResponse = await askAIForProductPageInfo(screenshotPath);
+    
+    const { price, discountPrice, productName } = await parseProductInfoFromAIResponse(AIResponse.message.content)
+
+    urlMetadata.productPrice = price; 
+    urlMetadata.productDiscountPrice = discountPrice;
+    urlMetadata.productName = productName;
+
     await browser.close();
 
-    let pageDomain = (new URL(pageUrl)).hostname;
     const urlMetadataPath = `./output/${pageDomain}-ProductPage-Metadata.csv`
     await saveToCSV(urlMetadata, urlMetadataPath);
     if (logsData.length > 0) {
@@ -41,7 +55,10 @@ function initializeUrlMetadata(pageUrl) {
         language: '',
         totalApiErrors: 0,
         totalSourceCodeErrors: 0,
-        totalImageErrors: 0
+        totalImageErrors: 0, 
+        productPrice: '', 
+        productDiscountPrice: '', 
+        productName: ''
     };
 }
 
@@ -51,7 +68,13 @@ async function setupPage(logsData, urlMetadata) {
             headless: false,
             args: ['--start-maximized']
         });
+
     const page = await browser.newPage();
+    await page.setViewport({
+        width: 1920,
+        height: 1080,
+        deviceScaleFactor: 1,
+    });
 
     addApiErrorListener(page, logsData, urlMetadata);
     addSourceCodeErrorListener(page, logsData, urlMetadata);
@@ -60,5 +83,5 @@ async function setupPage(logsData, urlMetadata) {
     return { browser, page }
 }
 
-await gatherProductPageInfo("https://www.gerryweber.com/en-eu");
+await gatherProductPageInfo("https://gjirafa50.com/apple-iphone-16-pro-128gb-black-titanium?utm_source=def-product&utm_medium=homepage&utm_campaign=homepage-featured-products");
 
